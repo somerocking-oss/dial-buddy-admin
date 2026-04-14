@@ -9,6 +9,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 import Dashboard from "@/pages/Dashboard";
 import Businesses from "@/pages/Businesses";
 import Reviews from "@/pages/Reviews";
+import RoleManagement from "@/pages/RoleManagement";
 import Users from "@/pages/Users";
 import Categories from "@/pages/Categories";
 import Login from "@/pages/Login";

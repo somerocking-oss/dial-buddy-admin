@@ -73,11 +73,12 @@ export default function RoleManagement() {
 
   return (
     <>
-      <AdminHeader
-        title="Role Management"
-        subtitle="SYS_RBAC :: Assign and revoke user roles"
-      />
+      <AdminHeader searchPlaceholder="QUERY_ROLES: EMAIL, USER_ID..." />
       <div className="flex-1 overflow-auto p-6">
+        <div className="mb-4">
+          <h1 className="font-sans text-xl font-semibold text-foreground">Role Management</h1>
+          <p className="font-mono text-xs text-muted-foreground">SYS_RBAC :: Assign and revoke user roles</p>
+        </div>
         <div className="bg-card border border-border">
           {/* Table Header */}
           <div className="grid grid-cols-[1fr_2fr_1fr_1.5fr] gap-4 px-4 py-3 border-b border-border font-mono text-xs text-muted-foreground uppercase tracking-wider">
