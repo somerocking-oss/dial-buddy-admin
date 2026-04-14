@@ -9,6 +9,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 import Dashboard from "@/pages/Dashboard";
 import Businesses from "@/pages/Businesses";
 import Reviews from "@/pages/Reviews";
+import RoleManagement from "@/pages/RoleManagement";
 import Users from "@/pages/Users";
 import Categories from "@/pages/Categories";
 import Login from "@/pages/Login";
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="/reviews" element={<Reviews />} />
               <Route path="/users" element={<Users />} />
               <Route path="/categories" element={<Categories />} />
+              <Route path="/roles" element={<RoleManagement />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

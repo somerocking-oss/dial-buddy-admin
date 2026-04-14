@@ -7,6 +7,7 @@ const navItems = [
   { label: "Reviews", path: "/reviews", shortcut: "R" },
   { label: "Users", path: "/users", shortcut: "U" },
   { label: "Categories", path: "/categories", shortcut: "C" },
+  { label: "Roles", path: "/roles", shortcut: "A" },
 ];
 
 export function AdminSidebar() {
