@@ -40,6 +40,8 @@ export default function RoleManagement() {
   const [revokeConfirm, setRevokeConfirm] = useState<{ userId: string; email: string; role: AppRole } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<AppRole | "all" | "none">("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["admin-users-roles"],
@@ -63,6 +65,16 @@ export default function RoleManagement() {
       return matchesSearch && matchesRole;
     });
   }, [users, searchQuery, roleFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredUsers.slice(start, start + PAGE_SIZE);
+  }, [filteredUsers, currentPage, PAGE_SIZE]);
+
+  // Reset page when filters change
+  const setSearchQueryAndReset = (q: string) => { setSearchQuery(q); setCurrentPage(1); };
+  const setRoleFilterAndReset = (f: AppRole | "all" | "none") => { setRoleFilter(f); setCurrentPage(1); };
 
   const assignRole = async (userId: string, role: AppRole) => {
     setActionLoading(`${userId}-${role}`);
