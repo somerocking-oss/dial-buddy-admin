@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,38 +25,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const checkAdminRole = async () => {
-    const { data, error } = await supabase.rpc("is_admin");
-    if (!error && data === true) {
-      setIsAdmin(true);
-    } else {
+  const checkAdminRole = useCallback(async (hasSession: boolean) => {
+    if (!hasSession) {
+      setIsAdmin(false);
+      setLoading(false);
+      return;
+    }
+    try {
+      const { data } = await supabase.rpc("is_admin");
+      setIsAdmin(data === true);
+    } catch {
       setIsAdmin(false);
     }
-  };
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
+    // Set up listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session);
-        if (session) {
-          await checkAdminRole();
-        } else {
-          setIsAdmin(false);
-        }
-        setLoading(false);
+        // Don't do async work here — schedule it
+        setTimeout(() => checkAdminRole(!!session), 0);
       }
     );
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    // Then get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session) {
-        await checkAdminRole();
-      }
-      setLoading(false);
+      checkAdminRole(!!session);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [checkAdminRole]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
