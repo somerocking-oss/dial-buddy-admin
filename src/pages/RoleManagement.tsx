@@ -40,6 +40,8 @@ export default function RoleManagement() {
   const [revokeConfirm, setRevokeConfirm] = useState<{ userId: string; email: string; role: AppRole } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<AppRole | "all" | "none">("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["admin-users-roles"],
@@ -63,6 +65,16 @@ export default function RoleManagement() {
       return matchesSearch && matchesRole;
     });
   }, [users, searchQuery, roleFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredUsers.slice(start, start + PAGE_SIZE);
+  }, [filteredUsers, currentPage, PAGE_SIZE]);
+
+  // Reset page when filters change
+  const setSearchQueryAndReset = (q: string) => { setSearchQuery(q); setCurrentPage(1); };
+  const setRoleFilterAndReset = (f: AppRole | "all" | "none") => { setRoleFilter(f); setCurrentPage(1); };
 
   const assignRole = async (userId: string, role: AppRole) => {
     setActionLoading(`${userId}-${role}`);
@@ -113,7 +125,7 @@ export default function RoleManagement() {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQueryAndReset(e.target.value)}
                 placeholder="SEARCH_EMAIL_OR_ID..."
                 className="bg-transparent border border-border px-3 py-1.5 font-mono text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring w-56"
               />
@@ -122,7 +134,7 @@ export default function RoleManagement() {
               {(["all", ...ALL_ROLES, "none"] as const).map((filter) => (
                 <button
                   key={filter}
-                  onClick={() => setRoleFilter(filter)}
+                  onClick={() => setRoleFilterAndReset(filter)}
                   className={`font-mono text-[10px] uppercase px-2 py-1 border transition-colors ${
                     roleFilter === filter
                       ? "border-primary bg-primary/10 text-primary"
@@ -153,7 +165,7 @@ export default function RoleManagement() {
               {users.length === 0 ? "NO_USERS_FOUND" : "NO_MATCHES :: REFINE_QUERY"}
             </div>
           ) : (
-            filteredUsers.map((user) => (
+            paginatedUsers.map((user) => (
               <div
                 key={user.id}
                 className="grid grid-cols-[1fr_2fr_1fr_1.5fr] gap-4 px-4 py-3 border-b border-border last:border-b-0 items-center"
@@ -213,6 +225,44 @@ export default function RoleManagement() {
             ))
           )}
         </div>
+
+        {/* Pagination */}
+        {filteredUsers.length > PAGE_SIZE && (
+          <div className="mt-3 flex items-center justify-between font-mono text-xs text-muted-foreground">
+            <span>
+              SHOWING {((currentPage - 1) * PAGE_SIZE) + 1}-{Math.min(currentPage * PAGE_SIZE, filteredUsers.length)} OF {filteredUsers.length}
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-2 py-1 border border-border hover:border-foreground/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                [PREV]
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-2 py-1 border transition-colors ${
+                    page === currentPage
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border hover:border-foreground/30"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-2 py-1 border border-border hover:border-foreground/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                [NEXT]
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <AlertDialog open={!!revokeConfirm} onOpenChange={(open) => !open && setRevokeConfirm(null)}>
