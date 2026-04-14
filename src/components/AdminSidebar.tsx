@@ -11,6 +11,7 @@ const navItems = [
 
 export function AdminSidebar() {
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   return (
     <aside className="w-64 bg-sidebar text-sidebar-foreground flex flex-col shrink-0">
