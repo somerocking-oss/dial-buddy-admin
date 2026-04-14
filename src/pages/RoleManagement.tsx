@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminHeader } from "@/components/AdminHeader";
@@ -38,6 +38,22 @@ export default function RoleManagement() {
   const queryClient = useQueryClient();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [revokeConfirm, setRevokeConfirm] = useState<{ userId: string; email: string; role: AppRole } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<AppRole | "all" | "none">("all");
+
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
+      const matchesSearch =
+        !searchQuery ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.id.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesRole =
+        roleFilter === "all" ||
+        (roleFilter === "none" && user.roles.length === 0) ||
+        (roleFilter !== "none" && user.roles.includes(roleFilter as AppRole));
+      return matchesSearch && matchesRole;
+    });
+  }, [users, searchQuery, roleFilter]);
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["admin-users-roles"],
@@ -86,9 +102,38 @@ export default function RoleManagement() {
     <>
       <AdminHeader searchPlaceholder="QUERY_ROLES: EMAIL, USER_ID..." />
       <div className="flex-1 overflow-auto p-6">
-        <div className="mb-4">
-          <h1 className="font-sans text-xl font-semibold text-foreground">Role Management</h1>
-          <p className="font-mono text-xs text-muted-foreground">SYS_RBAC :: Assign and revoke user roles</p>
+        <div className="mb-4 flex items-end justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="font-sans text-xl font-semibold text-foreground">Role Management</h1>
+            <p className="font-mono text-xs text-muted-foreground">SYS_RBAC :: Assign and revoke user roles</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-xs text-muted-foreground">&gt;</span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="SEARCH_EMAIL_OR_ID..."
+                className="bg-transparent border border-border px-3 py-1.5 font-mono text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring w-56"
+              />
+            </div>
+            <div className="flex gap-1">
+              {(["all", ...ALL_ROLES, "none"] as const).map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setRoleFilter(filter)}
+                  className={`font-mono text-[10px] uppercase px-2 py-1 border transition-colors ${
+                    roleFilter === filter
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"
+                  }`}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
         <div className="bg-card border border-border">
           {/* Table Header */}
@@ -103,12 +148,12 @@ export default function RoleManagement() {
             <div className="p-8 text-center font-mono text-sm text-muted-foreground animate-pulse">
               LOADING_USER_MATRIX...
             </div>
-          ) : users.length === 0 ? (
+          ) : filteredUsers.length === 0 ? (
             <div className="p-8 text-center font-mono text-sm text-muted-foreground">
-              NO_USERS_FOUND
+              {users.length === 0 ? "NO_USERS_FOUND" : "NO_MATCHES :: REFINE_QUERY"}
             </div>
           ) : (
-            users.map((user) => (
+            filteredUsers.map((user) => (
               <div
                 key={user.id}
                 className="grid grid-cols-[1fr_2fr_1fr_1.5fr] gap-4 px-4 py-3 border-b border-border last:border-b-0 items-center"
