@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { label: "Dashboard", path: "/", shortcut: "D" },
@@ -43,9 +44,14 @@ export function AdminSidebar() {
       </nav>
 
       <div className="p-4 border-t border-sidebar-border font-mono text-xs text-sidebar-muted">
+        <div className="mb-2 truncate">{user?.email}</div>
         Status: <span className="text-success">ONLINE</span>
-        <br />
-        Ping: 24ms
+        <button
+          onClick={signOut}
+          className="mt-2 block text-destructive hover:underline"
+        >
+          [LOGOUT]
+        </button>
       </div>
     </aside>
   );
