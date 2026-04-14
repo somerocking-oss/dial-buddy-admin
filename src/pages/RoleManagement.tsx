@@ -225,6 +225,44 @@ export default function RoleManagement() {
             ))
           )}
         </div>
+
+        {/* Pagination */}
+        {filteredUsers.length > PAGE_SIZE && (
+          <div className="mt-3 flex items-center justify-between font-mono text-xs text-muted-foreground">
+            <span>
+              SHOWING {((currentPage - 1) * PAGE_SIZE) + 1}-{Math.min(currentPage * PAGE_SIZE, filteredUsers.length)} OF {filteredUsers.length}
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-2 py-1 border border-border hover:border-foreground/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                [PREV]
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-2 py-1 border transition-colors ${
+                    page === currentPage
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border hover:border-foreground/30"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-2 py-1 border border-border hover:border-foreground/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                [NEXT]
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <AlertDialog open={!!revokeConfirm} onOpenChange={(open) => !open && setRevokeConfirm(null)}>
