@@ -41,6 +41,15 @@ export default function RoleManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<AppRole | "all" | "none">("all");
 
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ["admin-users-roles"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("admin_list_users");
+      if (error) throw error;
+      return (data as unknown as UserWithRoles[]) ?? [];
+    },
+  });
+
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       const matchesSearch =
@@ -54,15 +63,6 @@ export default function RoleManagement() {
       return matchesSearch && matchesRole;
     });
   }, [users, searchQuery, roleFilter]);
-
-  const { data: users = [], isLoading } = useQuery({
-    queryKey: ["admin-users-roles"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("admin_list_users");
-      if (error) throw error;
-      return (data as unknown as UserWithRoles[]) ?? [];
-    },
-  });
 
   const assignRole = async (userId: string, role: AppRole) => {
     setActionLoading(`${userId}-${role}`);
