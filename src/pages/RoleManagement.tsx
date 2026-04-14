@@ -5,6 +5,16 @@ import { AdminHeader } from "@/components/AdminHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type AppRole = "admin" | "moderator" | "user";
 
@@ -27,6 +37,7 @@ export default function RoleManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [revokeConfirm, setRevokeConfirm] = useState<{ userId: string; email: string; role: AppRole } | null>(null);
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["admin-users-roles"],
@@ -143,7 +154,9 @@ export default function RoleManagement() {
                         className="font-mono text-[10px] h-7 px-2"
                         disabled={loading}
                         onClick={() =>
-                          hasRole ? revokeRole(user.id, role) : assignRole(user.id, role)
+                          hasRole
+                            ? setRevokeConfirm({ userId: user.id, email: user.email, role })
+                            : assignRole(user.id, role)
                         }
                       >
                         {loading ? "..." : hasRole ? `- ${role}` : `+ ${role}`}
@@ -156,6 +169,33 @@ export default function RoleManagement() {
           )}
         </div>
       </div>
+
+      <AlertDialog open={!!revokeConfirm} onOpenChange={(open) => !open && setRevokeConfirm(null)}>
+        <AlertDialogContent className="font-mono">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-sans">CONFIRM_REVOKE :: {revokeConfirm?.role?.toUpperCase()}</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              Remove <span className="text-foreground font-semibold">{revokeConfirm?.role}</span> role from{" "}
+              <span className="text-foreground font-semibold">{revokeConfirm?.email}</span>?
+              This action can be reversed by re-assigning the role.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="font-mono text-xs">[CANCEL]</AlertDialogCancel>
+            <AlertDialogAction
+              className="font-mono text-xs bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (revokeConfirm) {
+                  revokeRole(revokeConfirm.userId, revokeConfirm.role);
+                  setRevokeConfirm(null);
+                }
+              }}
+            >
+              [EXEC :: REVOKE]
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
