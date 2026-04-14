@@ -125,7 +125,7 @@ export default function RoleManagement() {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQueryAndReset(e.target.value)}
                 placeholder="SEARCH_EMAIL_OR_ID..."
                 className="bg-transparent border border-border px-3 py-1.5 font-mono text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring w-56"
               />
@@ -134,7 +134,7 @@ export default function RoleManagement() {
               {(["all", ...ALL_ROLES, "none"] as const).map((filter) => (
                 <button
                   key={filter}
-                  onClick={() => setRoleFilter(filter)}
+                  onClick={() => setRoleFilterAndReset(filter)}
                   className={`font-mono text-[10px] uppercase px-2 py-1 border transition-colors ${
                     roleFilter === filter
                       ? "border-primary bg-primary/10 text-primary"
@@ -165,7 +165,7 @@ export default function RoleManagement() {
               {users.length === 0 ? "NO_USERS_FOUND" : "NO_MATCHES :: REFINE_QUERY"}
             </div>
           ) : (
-            filteredUsers.map((user) => (
+            paginatedUsers.map((user) => (
               <div
                 key={user.id}
                 className="grid grid-cols-[1fr_2fr_1fr_1.5fr] gap-4 px-4 py-3 border-b border-border last:border-b-0 items-center"
